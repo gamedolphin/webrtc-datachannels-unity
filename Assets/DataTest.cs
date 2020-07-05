@@ -36,7 +36,7 @@ namespace RTC
             ws.OnError += (str) => Debug.Log($"Error cb {str}");
             ws.OnMessage += (str) => Debug.Log($"Message cb {str}");
 
-            ws.Connect("ws://localhost:8080/"); 
+            ws.Connect("ws://localhost:8080/?id=1");
         }
 
 
@@ -48,5 +48,4 @@ namespace RTC
         }
     }
 
-}   
-
+}
