@@ -33,7 +33,7 @@ namespace RTC
         public event GenericCallback OnConnect;
         public event GenericCallback OnDisconnect;
         public event MessageStringCallback OnError;
-        public event MessageCallback OnMessage;
+        public event MessageStringCallback OnMessage;
         public event MessageStringCallback OnStringMessage;
 
         public void Connect(string url)
@@ -87,6 +87,7 @@ namespace RTC
             {
                 var str = System.Text.Encoding.UTF8.GetString(msg);
                 Logger.Log($"Received binary message {str}");
+                OnMessage?.Invoke(str);
             }
         }
 

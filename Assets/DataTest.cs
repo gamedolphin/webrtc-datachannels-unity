@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace RTC
 {
@@ -29,14 +25,46 @@ namespace RTC
 
             ws.OnConnect += () =>
             {
-                Debug.Log("Connect cb, sending message");
-                ws.SendMessage("Hello");
+                var msg = MessageUtil.GetMessage(MessageType.JoinRequest, new JoinRequestData { RoomId = "first" });
+                Debug.Log("Connect cb, sending message "+msg);
+                ws.SendMessage(msg);
             };
             ws.OnDisconnect += () => Debug.Log("Called close cb");
             ws.OnError += (str) => Debug.Log($"Error cb {str}");
-            ws.OnMessage += (str) => Debug.Log($"Message cb {str}");
+            ws.OnMessage += OnMessage;
 
             ws.Connect("ws://localhost:8080/?id=1");
+        }
+
+        private void OnMessage(string message)
+        {
+            var strType = message[0] + "";
+            var byteType = int.Parse(strType);
+            var type = (MessageType)byteType;
+            var data = message.Substring(1);
+            switch(type)
+            {
+                case MessageType.JoinResponse:
+                    OnJoinResponse(data);
+                    break;
+                default:
+                    Debug.Log("Unable to process message type "+type);
+                    break;
+            }
+        }
+
+        private void OnJoinResponse(string data)
+        {
+            var responseData = MessageUtil.GetData<JoinResponseData>(data);
+            OnGetOtherClients(responseData.OtherClients);
+        }
+
+        private void OnGetOtherClients(string[] ids)
+        {
+            Debug.Log("Received total clients "+ids.Length);
+            for (int i = 0; i < ids.Length; ++i) {
+                Debug.Log(ids[i]);
+            }
         }
 
 
