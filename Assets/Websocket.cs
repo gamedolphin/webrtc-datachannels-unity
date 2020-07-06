@@ -77,17 +77,23 @@ namespace RTC
 
         private void _OnMessage([MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 1)] byte[] msg, int size, IntPtr ptr)
         {
-            if (size < 0)
-            {
-                Logger.Log($"[Websocket] Socket Message:  {msg}");
-                var str = System.Text.Encoding.UTF8.GetString(msg);
-                OnStringMessage?.Invoke(str);
+            try {
+                if (size < 0)
+                {
+                    Logger.Log($"[Websocket] Socket Message:  {msg}");
+                    var str = System.Text.Encoding.UTF8.GetString(msg);
+                    OnStringMessage?.Invoke(str);
+                }
+                else
+                {
+                    var str = System.Text.Encoding.UTF8.GetString(msg);
+                    Logger.Log($"Received binary message {str}");
+                    OnMessage?.Invoke(str);
+                }
             }
-            else
+            catch(Exception ex)
             {
-                var str = System.Text.Encoding.UTF8.GetString(msg);
-                Logger.Log($"Received binary message {str}");
-                OnMessage?.Invoke(str);
+                Logger.Log($"error on message {ex}");
             }
         }
 

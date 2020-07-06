@@ -16,6 +16,14 @@ namespace RTC
         private DataChannel rtc;
         private Websocket ws;
 
+        [SerializeField]
+        private string id;
+
+        private void LogMessage(string msg)
+        {
+            Debug.Log($"[{id}] : {msg}");
+        }
+
         // Start is called before the first frame update
         private void Start()
         {
@@ -26,14 +34,13 @@ namespace RTC
             ws.OnConnect += () =>
             {
                 var msg = MessageUtil.GetMessage(MessageType.JoinRequest, new JoinRequestData { RoomId = "first" });
-                Debug.Log("Connect cb, sending message "+msg);
+                LogMessage("Connect cb, sending message "+msg);
                 ws.SendMessage(msg);
             };
-            ws.OnDisconnect += () => Debug.Log("Called close cb");
-            ws.OnError += (str) => Debug.Log($"Error cb {str}");
+            ws.OnDisconnect += () => LogMessage("Called close cb");
+            ws.OnError += (str) => LogMessage($"Error cb {str}");
             ws.OnMessage += OnMessage;
-
-            ws.Connect("ws://localhost:8080/?id=1");
+            ws.Connect($"ws://localhost:8080/?id={id}");
         }
 
         private void OnMessage(string message)
@@ -48,7 +55,7 @@ namespace RTC
                     OnJoinResponse(data);
                     break;
                 default:
-                    Debug.Log("Unable to process message type "+type);
+                    LogMessage("Unable to process message type "+type);
                     break;
             }
         }
@@ -61,7 +68,7 @@ namespace RTC
 
         private void OnGetOtherClients(string[] ids)
         {
-            Debug.Log("Received total clients "+ids.Length);
+            LogMessage("Received total clients "+ids.Length);
             for (int i = 0; i < ids.Length; ++i) {
                 Debug.Log(ids[i]);
             }
@@ -70,7 +77,7 @@ namespace RTC
 
         private void OnDestroy()
         {
-            Debug.Log("Disposing...");
+            LogMessage("Disposing...");
             ws.Dispose();
             rtc.Dispose();
         }
