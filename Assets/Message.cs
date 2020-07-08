@@ -26,8 +26,8 @@ namespace RTC
             { MessageType.JoinRequest, typeof(JoinRequestData) },
             { MessageType.JoinResponse, typeof(JoinResponseData) },
             { MessageType.LeaveRequest, typeof(LeaveRequestData) },
-            { MessageType.SendOffer, typeof(SendOfferData) },
-            { MessageType.SendAnswer, typeof(SendAnswerData) },
+            { MessageType.SendOffer, typeof(SendSdpData) },
+            { MessageType.SendAnswer, typeof(SendSdpData) },
             { MessageType.SendIce, typeof(SendIceData) },
         };
 
@@ -42,22 +42,19 @@ namespace RTC
         }
     }
 
-    public struct SendOfferData
+    public struct SendSdpData
     {
         public string ClientId;
-        public string Offer;
-    }
-
-    public struct SendAnswerData
-    {
-        public string ClientId;
-        public string Answer;
+        public string Sdp;
+        public string FromId;
     }
 
     public struct SendIceData
     {
         public string ClientId;
-        public string Ice;
+        public string Candidate;
+        public string Mid;
+        public string FromId;
     }
 
     public struct JoinRequestData

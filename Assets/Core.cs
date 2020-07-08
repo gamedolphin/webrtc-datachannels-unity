@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using UnityEngine;
 
 namespace RTC
 {
@@ -20,12 +18,86 @@ namespace RTC
     public delegate void StateChangeCallback(RTCState state, IntPtr ptr);
     public delegate void GatheringStateChangeCallback(GatherState state, IntPtr ptr);
 
-    public struct RtcConfig
+    public delegate void StateChangeDelegate(RTCState state);
+    public delegate void GatherStateChangeDelegate(GatherState state);
+    public delegate void CandidateDelegate(string candidate, string mid);
+    public delegate void DescriptionDelegate (string sdp, string type);
+
+    [StructLayout(LayoutKind.Sequential)]
+    public class RtcConfig
     {
-        public string[] iceServers;
+        public IntPtr iceServers;
         public int iceServerCount;
         public UInt16 portRangeBegin;
         public UInt16 portRangeEnd;
+    }
+
+    public enum DescriptionType
+    {
+        Offer,
+        Answer
+    }
+
+    public static class CoreUtils
+    {
+
+        public static string GetDescriptionType(DescriptionType d)
+        {
+            if (d == DescriptionType.Offer)
+            {
+                return "offer";
+            }
+            return "answer";
+        }
+
+        private struct RtcInfo
+        {
+            public IntPtr[] serverArray;
+            public GCHandle gch;
+        }
+
+        private static readonly Dictionary<int,RtcInfo> rtcInfo = new Dictionary<int,RtcInfo>();
+        private static int configCount = 0;
+
+        public static int GetConfig(string[] servers, out RtcConfig config)
+        {
+            var info = new RtcInfo();
+            info.serverArray = new IntPtr[servers.Length];
+            for (int i = 0; i < servers.Length; ++i) {
+                info.serverArray[i] = Marshal.StringToCoTaskMemUni(servers[i]);
+            }
+
+            info.gch = GCHandle.Alloc(info.serverArray, GCHandleType.Pinned);
+
+            IntPtr addr = info.gch.AddrOfPinnedObject();
+
+            config = new RtcConfig();
+            config.iceServers = addr;
+            config.iceServerCount = servers.Length;
+
+            configCount += 1;
+
+            rtcInfo.Add(configCount, info);
+
+            return configCount;
+        }
+
+        public static void CleanupConfig(int id)
+        {
+            if(rtcInfo.ContainsKey(id))
+            {
+                var info = rtcInfo[id];
+
+                info.gch.Free();
+
+                foreach(var server in info.serverArray)
+                {
+                    Marshal.FreeCoTaskMem(server);
+                }
+
+                rtcInfo.Remove(id);
+            }
+        }
     }
 
     public enum RTCState
